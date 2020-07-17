@@ -1,0 +1,57 @@
+## This is a skelleton for setting up an s3 bucket to host a "serverless" static HTML site
+#  like mkdocs, and the like. 
+#
+#  So far all this can do is make a public S3 bucket for you to upload html into... 
+#
+# TODO: figure out DNS/URL, CloudFront, and maybe find a way to use 
+#       Lamda for creating and passing out auth cookies so it can be
+#       a private S3 bucket? 
+#
+#       Perhaps make it standalone in AWS by storing the md files in 
+#       CodeCommit, and call a job build the site when they are
+#       updated?
+#
+
+AWSTemplateFormatVersion: 2010-09-09  
+Description: Make an s3 bucket to host ig-mkdocs
+
+Parameters:
+SiteName:
+    Description: Mkdocs
+    Type: String
+    Default: ig-mkdocs
+
+Resources:
+S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+        BucketName: !Ref SiteName
+        AccessControl: PublicRead
+        WebsiteConfiguration:
+            IndexDocument: index.html
+            ErrorDocument: error.html
+
+BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+    PolicyDocument:
+        Id: MyPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Join
+            - ''
+            - - 'arn:aws:s3:::'
+                - !Ref S3Bucket
+                - /*
+    Bucket: !Ref S3Bucket
+
+Outputs:
+WebsiteURL:
+    Value: !GetAtt
+        - S3Bucket
+        - WebsiteURL
+    Description: URL for website hosted on S3
