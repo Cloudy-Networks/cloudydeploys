@@ -153,7 +153,7 @@ Resources:
           Value: !Sub sg-bastion-${AWS::StackName}
         VpcId: !Ref VPC
 
-  EC2Instance:
+  EC2InstanceBastion:
     Type: AWS::EC2::Instance
     Properties:
       AvailabilityZone: !Select [ 0, !GetAZs ]
