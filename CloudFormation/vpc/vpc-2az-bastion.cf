@@ -171,5 +171,3 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub bastion-${AWS::StackName}
-  # TODO: execute stuff on the bastion when it comes up
-  # UserData: String
