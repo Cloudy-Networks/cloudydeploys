@@ -1,0 +1,112 @@
+# The OA
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.1.0/24
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value:  !Join ['', [!Ref "AWS::StackName", "-ll-ig" ]]
+
+  #  VPC gets internet access:
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    DependsOn: VPC
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    # Note, you can't attach an IGW to a VPC unless both are created:
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 192.168.1.0/28
+      AvailabilityZone: !Select [ 0, !GetAZs ]    # Get the first AZ in the list
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Public-A
+
+  # Some route tables for our subnets:
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-Public
+  PublicRoute1:   # Public route table has direct routing to IGW:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  # A NAT Gateway:
+  NATGateway:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIPAddress.AllocationId
+      SubnetId: !Ref PublicSubnetA
+      Tags:
+      - Key: Name
+        Value: !Sub NAT-${AWS::StackName}
+  ElasticIPAddress:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: VPC
+
+  # Attach the public subnet to public route table:
+  PublicSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnetA
+      RouteTableId: !Ref PublicRouteTable
+
+  # Let clients connect from anywhere on the standard OA udp port.
+  # Let admins connect from anywhere via ssh
+  OaSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Allow clients into the-oa
+        SecurityGroupEgress:
+            - IpProtocol: -1
+              CidrIp: 0.0.0.0/0
+        SecurityGroupIngress:
+            - IpProtocol: udp
+              FromPort: 27960
+              ToPort: 27960
+              CidrIp: 0.0.0.0/0
+            - IpProtocol: tcp
+              FromPort: 22
+              ToPort: 22
+              CidrIp: 0.0.0.0/0
+        Tags:
+        - Key: Name
+          Value: !Sub sg-oa-${AWS::StackName}
+        VpcId: !Ref VPC
+
+  EC2InstanceOA:
+    Type: AWS::EC2::Instance
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs ]
+      DisableApiTermination: false
+      ImageId: ami-068eb71da1589bf7d # The OA AMI in us-west-1
+      InstanceInitiatedShutdownBehavior: stop
+      InstanceType: t3.small
+      KeyName: russell.adams # Maybe put your keyname here if you aren't me
+      Monitoring: no
+      NetworkInterfaces:
+        - DeviceIndex: '0'
+          SubnetId: !Ref PublicSubnetA
+          AssociatePublicIpAddress: true                # We will need a public IP address
+          GroupSet: [!Ref OaSecurityGroup]              # Plug in the security group
+      Tags:
+      - Key: Name
+        Value: !Sub the-oa-${AWS::StackName}
