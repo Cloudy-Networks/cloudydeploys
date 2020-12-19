@@ -92,12 +92,12 @@ Resources:
           Value: !Sub sg-oa-${AWS::StackName}
         VpcId: !Ref VPC
 
-  EC2InstanceOA:
+  EC2InstanceOa:
     Type: AWS::EC2::Instance
     Properties:
       AvailabilityZone: !Select [ 0, !GetAZs ]
       DisableApiTermination: false
-      ImageId: ami-068eb71da1589bf7d # The OA AMI in us-west-1
+      ImageId: ami-068eb71da1589bf7d # The Oa AMI in us-west-1
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: t3.small
       KeyName: russell.adams # Maybe put your keyname here if you aren't me
@@ -105,8 +105,14 @@ Resources:
       NetworkInterfaces:
         - DeviceIndex: '0'
           SubnetId: !Ref PublicSubnetA
-          AssociatePublicIpAddress: true                # We will need a public IP address
-          GroupSet: [!Ref OaSecurityGroup]              # Plug in the security group
+          GroupSet: [ !Ref OaSecurityGroup ] # Plug in the security group
       Tags:
       - Key: Name
         Value: !Sub the-oa-${AWS::StackName}
+
+  OaEIP:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+  #    AllocationId: eipalloc-f7bc02c9
+      EIP: 54.176.172.49
+      InstanceId: !Ref EC2InstanceOa
