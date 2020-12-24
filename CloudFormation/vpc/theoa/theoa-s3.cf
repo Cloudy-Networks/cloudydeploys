@@ -1,0 +1,6 @@
+Resources:
+  TheOaS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: ll-ig-oa
