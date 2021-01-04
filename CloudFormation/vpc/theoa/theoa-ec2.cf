@@ -9,7 +9,7 @@ Resources:
       EnableDnsHostnames: true
       Tags:
       - Key: Name
-        Value:  !Join ['', [!Ref "AWS::StackName", "-ll-ig" ]]
+        Value:  !Join ['', [!Ref "AWS::StackName", "-LL-IG-DEV" ]]
 
   #  VPC gets internet access:
   InternetGateway:
@@ -23,7 +23,7 @@ Resources:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
-  PublicSubnetA:
+  PublicNet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -31,7 +31,7 @@ Resources:
       AvailabilityZone: !Select [ 0, !GetAZs ]    # Get the first AZ in the list
       Tags:
       - Key: Name
-        Value: !Sub ${AWS::StackName}-Public-A
+        Value: !Sub ${AWS::StackName}-PublicNet1
 
   # Some route tables for our subnets:
   PublicRouteTable:
@@ -40,7 +40,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
       - Key: Name
-        Value: !Sub ${AWS::StackName}-Public
+        Value: !Sub ${AWS::StackName}-PublicRouteTable
 
   PublicRoute1:   # Public route table has direct routing to IGW:
     Type: AWS::EC2::Route
@@ -55,10 +55,10 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt ElasticIPAddress.AllocationId
-      SubnetId: !Ref PublicSubnetA
+      SubnetId: !Ref PublicNet1
       Tags:
       - Key: Name
-        Value: !Sub NAT-${AWS::StackName}
+        Value: !Sub ${AWS::StackName}-NatGw
 
   ElasticIPAddress:
     Type: AWS::EC2::EIP
@@ -66,10 +66,10 @@ Resources:
       Domain: VPC
 
   # Attach the public subnet to public route table:
-  PublicSubnetARouteTableAssociation:
+  PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PublicSubnetA
+      SubnetId: !Ref PublicNet1
       RouteTableId: !Ref PublicRouteTable
 
   # Let clients connect from anywhere on the standard OA udp port.
@@ -92,7 +92,7 @@ Resources:
               CidrIp: 0.0.0.0/0
         Tags:
         - Key: Name
-          Value: !Sub sg-oa-${AWS::StackName}
+          Value: !Sub ${AWS::StackName}-SG-OA
         VpcId: !Ref VPC
 
   EC2InstanceOa:
@@ -100,18 +100,19 @@ Resources:
     Properties:
       AvailabilityZone: !Select [ 0, !GetAZs ]
       DisableApiTermination: false
-      IamInstanceProfile: TheOa_ec2_s3 # Allow EC2 access to s3, "server.cfg".
+      IamInstanceProfile: !Ref TheOaEc2S3InstanceProfile # Allow EC2 access to s3, "server.cfg".
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: t3.small
+      ImageId: ami-068eb71da1589bf7d # The Oa AMI in us-west-1
       KeyName: russell.adams # Maybe put your keyname here if you aren't me
       Monitoring: no
       NetworkInterfaces:
         - DeviceIndex: '0'
-          SubnetId: !Ref PublicSubnetA
+          SubnetId: !Ref PublicNet1
           GroupSet: [ !Ref OaSecurityGroup ] # Plug in the security group
       Tags:
       - Key: Name
-        Value: !Sub the-oa-${AWS::StackName}
+        Value: !Sub ${AWS::StackName}-THE-OA
 
   OaEIP:
     Type: AWS::EC2::EIPAssociation
@@ -119,3 +120,39 @@ Resources:
   #    AllocationId: eipalloc-f7bc02c9 # must list the EIP OR AllocationId
       EIP: 54.176.172.49
       InstanceId: !Ref EC2InstanceOa
+
+ # Trying to add role/policy
+  TheOaEc2S3:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: OaS3Access
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 's3:ListBucket'
+                Resource: 'arn:aws:s3:::the-oa'
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                  - 's3:DeleteObject'
+                Resource: 'arn:aws:s3:::the-oa/oaconfig/server.cfg'
+
+  TheOaEc2S3InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Path: /
+      Roles:
+        - !Ref TheOaEc2S3
