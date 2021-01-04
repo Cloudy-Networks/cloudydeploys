@@ -14,6 +14,10 @@ Resources:
   #  VPC gets internet access:
   InternetGateway:
     Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-InternetGateway
     DependsOn: VPC
 
   AttachGateway:
@@ -58,12 +62,15 @@ Resources:
       SubnetId: !Ref PublicNet1
       Tags:
       - Key: Name
-        Value: !Sub ${AWS::StackName}-NatGw
+        Value: !Sub ${AWS::StackName}-NAT-GW
 
   ElasticIPAddress:
     Type: AWS::EC2::EIP
     Properties:
       Domain: VPC
+      Tags:
+      - Key: Name
+        Value: !Sub ${AWS::StackName}-VPC-IP
 
   # Attach the public subnet to public route table:
   PublicSubnet1RouteTableAssociation:
@@ -92,7 +99,7 @@ Resources:
               CidrIp: 0.0.0.0/0
         Tags:
         - Key: Name
-          Value: !Sub ${AWS::StackName}-SG-OA
+          Value: !Sub ${AWS::StackName}-SG
         VpcId: !Ref VPC
 
   EC2InstanceOa:
