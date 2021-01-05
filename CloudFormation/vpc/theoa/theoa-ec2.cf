@@ -1,7 +1,7 @@
 # The OA
 
 Resources:
-  VPC:
+  OaIGDevVpc:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 192.168.1.0/24
@@ -9,7 +9,7 @@ Resources:
       EnableDnsHostnames: true
       Tags:
       - Key: Name
-        Value:  !Join ['', [!Ref "AWS::StackName", "-LL-IG-DEV" ]]
+        Value:  !Join ['', [!Ref "AWS::StackName", "-IgDevVpc" ]]
 
   #  VPC gets internet access:
   InternetGateway:
@@ -18,19 +18,19 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-InternetGateway
-    DependsOn: VPC
+    DependsOn: OaIGDevVpc
 
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     # Note, you can't attach an IGW to a VPC unless both are created:
     Properties:
-      VpcId: !Ref VPC
+      VpcId: !Ref OaIGDevVpc
       InternetGatewayId: !Ref InternetGateway
 
   PublicNet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref VPC
+      VpcId: !Ref OaIGDevVpc
       CidrBlock: 192.168.1.0/28
       Tags:
       - Key: Name
@@ -40,7 +40,7 @@ Resources:
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref VPC
+      VpcId: !Ref OaIGDevVpc
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-PublicRouteTable
@@ -54,22 +54,19 @@ Resources:
       GatewayId: !Ref InternetGateway
 
   # A NAT Gateway:
-  NATGateway:
+  OaNATGateway:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt ElasticIPAddress.AllocationId
+      AllocationId: !GetAtt VpcElasticIPAddress.AllocationId
       SubnetId: !Ref PublicNet1
-      Tags:
-      - Key: Name
-        Value: !Sub ${AWS::StackName}-NAT-GW
 
-  ElasticIPAddress:
+  VpcElasticIPAddress:
     Type: AWS::EC2::EIP
     Properties:
-      Domain: VPC
+      Domain: OaIGDevVpc
       Tags:
       - Key: Name
-        Value: !Sub ${AWS::StackName}-VPC-IP
+        Value: !Sub ${AWS::StackName}-VpcElasticIPAddress
 
   # Attach the public subnet to public route table:
   PublicSubnet1RouteTableAssociation:
@@ -98,8 +95,8 @@ Resources:
               CidrIp: 0.0.0.0/0
         Tags:
         - Key: Name
-          Value: !Sub ${AWS::StackName}-SG
-        VpcId: !Ref VPC
+          Value: !Sub ${AWS::StackName}-OaSecurityGroup
+        VpcId: !Ref OaIGDevVpc
 
   EC2InstanceOa:
     Type: AWS::EC2::Instance
@@ -118,7 +115,7 @@ Resources:
           GroupSet: [ !Ref OaSecurityGroup ] # Plug in the security group
       Tags:
       - Key: Name
-        Value: !Sub ${AWS::StackName}-THE-OA
+        Value: !Sub ${AWS::StackName}-EC2InstanceOa
       UserData:
         !Base64 |
         #!/bin/bash
@@ -134,7 +131,7 @@ Resources:
       EIP: 54.176.172.49
       InstanceId: !Ref EC2InstanceOa
 
- # Add role/policy
+ # Add role/policy/profile
   TheOaEc2S3:
     Type: 'AWS::IAM::Role'
     Properties:
