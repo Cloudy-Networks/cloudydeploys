@@ -32,7 +32,6 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 192.168.1.0/28
-      AvailabilityZone: !Select [ 0, !GetAZs ]    # Get the first AZ in the list
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-PublicNet1
@@ -105,12 +104,12 @@ Resources:
   EC2InstanceOa:
     Type: AWS::EC2::Instance
     Properties:
-      AvailabilityZone: !Select [ 0, !GetAZs ]
       DisableApiTermination: false
-      IamInstanceProfile: !Ref TheOaEc2S3InstanceProfile # Allow EC2 access to s3, "server.cfg".
+      IamInstanceProfile: !Ref TheOaEc2S3InstanceProfile # Allow OA host to access to s3 bucket object "server.cfg".
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: t3.small
-      ImageId: ami-068eb71da1589bf7d # The Oa AMI in us-west-1
+#     ImageId: ami-068eb71da1589bf7d # The Oa AMI in us-west-1
+      ImageId: ami-0f410b552d8a5e1b9  # Vanilla Debian 10 us-west-1
       KeyName: russell.adams # Maybe put your keyname here if you aren't me
       Monitoring: no
       NetworkInterfaces:
@@ -120,6 +119,13 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-THE-OA
+      UserData:
+        !Base64 |
+        #!/bin/bash
+        apt -y update && apt -y upgrade
+        apt -y install openarena-server openarena-oacmp1
+        aws s3 cp "s3://the-oa/oaconfig/server.cfg" "/etc/openarena-server/server.cfg"
+        reboot
 
   OaEIP:
     Type: AWS::EC2::EIPAssociation
@@ -128,7 +134,7 @@ Resources:
       EIP: 54.176.172.49
       InstanceId: !Ref EC2InstanceOa
 
- # Trying to add role/policy
+ # Add role/policy
   TheOaEc2S3:
     Type: 'AWS::IAM::Role'
     Properties:
