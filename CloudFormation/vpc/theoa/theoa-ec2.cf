@@ -119,6 +119,8 @@ Resources:
       UserData:
         !Base64 |
         #!/bin/bash
+        hostnamectl set-hostname oa.cloudynet.work
+        sed '9 a 127.0.0.1   oa.cloudynet.work oa' /etc/hosts
         apt -y update && apt -y upgrade
         apt -y install openarena-server openarena-oacmp1
         aws s3 cp "s3://ll-ig-oa/oaconfig/server.cfg" "/etc/openarena-server/server.cfg"
