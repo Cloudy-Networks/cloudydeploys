@@ -1,6 +1,23 @@
 # The OA
 
+Parameters:
+
+  InstanceTypeParameter:
+    Description: t2.micro(1c,1g) t2.small(1c,2g) t3.micro(2c,1g) t3.small(2c,2g). Default is t3.small.
+    Type: String
+    Default: t3.small
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t2.micro
+      - t2.small
+
+  KeyNameParameter:
+    Description: The EC2 Key Pair to allow SSH access to the instance
+    Type: 'AWS::EC2::KeyPair::KeyName'
+
 Resources:
+
   OaIGDevVpc:
     Type: AWS::EC2::VPC
     Properties:
@@ -104,10 +121,10 @@ Resources:
       DisableApiTermination: false
       IamInstanceProfile: !Ref TheOaEc2S3InstanceProfile # Allow OA host to access to s3 bucket object "server.cfg".
       InstanceInitiatedShutdownBehavior: stop
-      InstanceType: t3.small
+      InstanceType: !Ref InstanceTypeParameter
 #     ImageId: ami-068eb71da1589bf7d # The Oa AMI in us-west-1
       ImageId: ami-0f410b552d8a5e1b9  # Vanilla Debian 10 us-west-1
-      KeyName: russell.adams # Maybe put your keyname here if you aren't me
+      KeyName: !Ref KeyNameParameter
       Monitoring: no
       NetworkInterfaces:
         - DeviceIndex: '0'
