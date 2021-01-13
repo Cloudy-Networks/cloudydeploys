@@ -18,7 +18,7 @@ Parameters:
 
 Resources:
 
-  OaIGDevVpc:
+  VPC:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: 192.168.1.0/24
@@ -35,19 +35,19 @@ Resources:
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-InternetGateway
-    DependsOn: OaIGDevVpc
+    DependsOn: VPC
 
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     # Note, you can't attach an IGW to a VPC unless both are created:
     Properties:
-      VpcId: !Ref OaIGDevVpc
+      VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
   PublicNet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref OaIGDevVpc
+      VpcId: !Ref VPC
       CidrBlock: 192.168.1.0/28
       Tags:
       - Key: Name
@@ -57,7 +57,7 @@ Resources:
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref OaIGDevVpc
+      VpcId: !Ref VPC
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-PublicRouteTable
@@ -71,7 +71,7 @@ Resources:
       GatewayId: !Ref InternetGateway
 
   # A NAT Gateway:
-  OaNATGateway:
+  NATGateway:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt VpcElasticIPAddress.AllocationId
@@ -80,7 +80,7 @@ Resources:
   VpcElasticIPAddress:
     Type: AWS::EC2::EIP
     Properties:
-      Domain: OaIGDevVpc
+      Domain: VPC
       Tags:
       - Key: Name
         Value: !Sub ${AWS::StackName}-VpcElasticIPAddress
@@ -94,7 +94,7 @@ Resources:
 
   # Let clients connect from anywhere on the standard OA udp port.
   # Let admins connect from anywhere via ssh
-  OaSecurityGroup:
+  SecurityGroup:
       Type: AWS::EC2::SecurityGroup
       Properties:
         GroupDescription: Allow clients into the-oa
@@ -112,14 +112,14 @@ Resources:
               CidrIp: 0.0.0.0/0
         Tags:
         - Key: Name
-          Value: !Sub ${AWS::StackName}-OaSecurityGroup
-        VpcId: !Ref OaIGDevVpc
+          Value: !Sub ${AWS::StackName}-SecurityGroup
+        VpcId: !Ref VPC
 
-  EC2InstanceOa:
+  EC2Instance:
     Type: AWS::EC2::Instance
     Properties:
       DisableApiTermination: false
-      IamInstanceProfile: !Ref TheOaEc2S3InstanceProfile # Allow OA host to access to s3 bucket object "server.cfg".
+      IamInstanceProfile: !Ref EC2S3RoleInstanceProfile # Allow OA host to access to s3 bucket object "server.cfg".
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: !Ref InstanceTypeParameter
 #     ImageId: ami-068eb71da1589bf7d # The Oa AMI in us-west-1
@@ -129,10 +129,10 @@ Resources:
       NetworkInterfaces:
         - DeviceIndex: '0'
           SubnetId: !Ref PublicNet1
-          GroupSet: [ !Ref OaSecurityGroup ] # Plug in the security group
+          GroupSet: [ !Ref SecurityGroup ] # Plug in the security group
       Tags:
       - Key: Name
-        Value: !Sub ${AWS::StackName}-EC2InstanceOa
+        Value: !Sub ${AWS::StackName}-EC2Instance
       UserData:
         !Base64 |
         #!/bin/bash
@@ -148,10 +148,10 @@ Resources:
     Properties:
   #    AllocationId: eipalloc-f7bc02c9 # must list the EIP OR AllocationId
       EIP: 54.176.172.49
-      InstanceId: !Ref EC2InstanceOa
+      InstanceId: !Ref EC2Instance
 
  # Add role/policy/profile
-  TheOaEc2S3:
+  EC2S3Role:
     Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
@@ -165,7 +165,7 @@ Resources:
               - 'sts:AssumeRole'
       Path: /
       Policies:
-        - PolicyName: OaS3Access
+        - PolicyName: EC2AccessS3
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -179,9 +179,9 @@ Resources:
                   - 's3:DeleteObject'
                 Resource: 'arn:aws:s3:::ll-ig-oa/oaconfig/server.cfg'
 
-  TheOaEc2S3InstanceProfile:
+  EC2S3RoleInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
     Properties:
       Path: /
       Roles:
-        - !Ref TheOaEc2S3
+        - !Ref EC2S3Role
