@@ -105,16 +105,16 @@ Resources:
   NATGateway:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt VpcElasticIPAddress.AllocationId
+      AllocationId: !GetAtt VPCElasticIPAddress.AllocationId
       SubnetId: !Ref PublicNet1
 
-  VpcElasticIPAddress:
+  VPCElasticIPAddress:
     Type: AWS::EC2::EIP
     Properties:
       Domain: VPC
       Tags:
       - Key: Name
-        Value: !Sub ${AWS::StackName}-VpcElasticIPAddress
+        Value: !Sub ${AWS::StackName}-VPCElasticIPAddress
 
   # Attach the public subnet to public route table:
   PublicSubnet1RouteTableAssociation:
@@ -173,7 +173,7 @@ Resources:
         aws s3 cp "s3://ll-ig-oa/oaconfig/server.cfg" "/etc/openarena-server/server.cfg"
         reboot
 
-  OaEIP:
+  EC2InstanceEIP:
     Type: AWS::EC2::EIPAssociation
     Properties:
   #    AllocationId: eipalloc-f7bc02c9 # must list the EIP OR AllocationId
