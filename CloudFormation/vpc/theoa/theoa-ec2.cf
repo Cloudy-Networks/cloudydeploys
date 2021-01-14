@@ -173,12 +173,20 @@ Resources:
         aws s3 cp "s3://ll-ig-oa/oaconfig/server.cfg" "/etc/openarena-server/server.cfg"
         reboot
 
+# How to get and allocate an "new" EIP and associate it to an instance
   EC2InstanceEIP:
-    Type: AWS::EC2::EIPAssociation
+    Type: AWS::EC2::EIP
     Properties:
-  #    AllocationId: eipalloc-f7bc02c9 # must list the EIP OR AllocationId
-      EIP: 54.176.172.49
       InstanceId: !Ref EC2Instance
+    DependsOn: EC2Instance
+
+# Example of how to allocate an EIP already in your account
+#  EC2InstanceEIP:
+#    Type: AWS::EC2::EIPAssociation
+#    Properties:
+  #    AllocationId: eipalloc-f7bc02c9 # must list the EIP OR AllocationId, not both
+#      EIP: 54.176.172.49
+#      InstanceId: !Ref EC2Instance
 
  # Add role/policy/profile
   EC2S3Role:
@@ -215,3 +223,14 @@ Resources:
       Path: /
       Roles:
         - !Ref EC2S3Role
+
+  EC2InstanceRecordSetA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !ImportValue CloudynetworkZoneExport
+      Name: oa.cloudynet.work.
+      Type: A
+      TTL: '60'
+      ResourceRecords:
+      - !GetAtt EC2Instance.PublicIp
+    DependsOn: EC2InstanceEIP
