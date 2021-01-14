@@ -1,2 +1,2 @@
 # deploy.awsplayground
-a place for our AWS testing and pre-prod development
+a place for AWS learing and testing.
