@@ -5,16 +5,26 @@ Resources:
     Type: "AWS::Route53::HostedZone"
     Properties:
       HostedZoneConfig:
-        Comment "Public hosted zone for cloudynet.work"
+        Comment: "Public hosted zone for cloudynet.work"
       Name: cloudynet.work.
 
-  TheOA:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneName: cloudynet.work.
-      Name: oa.cloudynet.work.
-      Type: A
-      TTL: '300'
-      ResourceRecords:
-      - 54.176.172.49
-    DependsOn: CloudynetWorkZone
+# Example of a statically defined host record
+#  TheOA:
+#    Type: AWS::Route53::RecordSet
+#    Properties:
+#      HostedZoneName: cloudynet.work.
+#      Name: oa.cloudynet.work.
+#      Type: A
+#      TTL: '60'
+#      ResourceRecords:
+#      - 54.176.172.49
+#    DependsOn: CloudynetWorkZone
+
+# Using Outputs we can get the name of the zone to import in another stack
+# This is how I was able to make a host record from another stack
+Outputs:
+  CloudynetWorkZoneExport:
+    Description: The hosted zone id
+    Value: !Ref CloudynetWorkZone
+    Export:
+      Name: "CloudynetworkZoneExport"

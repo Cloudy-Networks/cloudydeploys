@@ -16,6 +16,37 @@ Parameters:
     Description: The EC2 Key Pair to allow SSH access to the instance
     Type: 'AWS::EC2::KeyPair::KeyName'
 
+# Mappings... proof of concept, specify the "OS code"
+# and get the image based on the region you are deploying in
+# use it as a parameter for EC2 like:
+#
+# ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", DEB10]
+#
+# DEB10 == Debian 10 Buster
+# UBT20 == Ubuntu 20.04 LTS Focal
+# ALIN2 == Amazon Linux 2
+#
+# delete these comments later...
+
+Mappings:
+  RegionMap:
+    us-west-1:
+      DEB10: ami-0f410b552d8a5e1b9
+      UBT20: ami-0085e120cd494ce88
+      ALIN2: ami-00db7974d178c2536
+    us-west-2:
+      DEB10: ami-01632a514f93db17f
+      UBT20: ami-024f7e9a6b4357656
+      ALIN2: ami-0d927e3ac55a7b26f
+    us-east-1:
+      DEB10: ami-00bc4a48c20aeae77
+      UBT20: ami-089439860addda2e3
+      ALIN2: ami-0dc161e2e5f144ffc
+    us-east-2:
+      DEB10: ami-05f5cd6454a382a70
+      UBT20: ami-0ef6adb08833904f8
+      ALIN2: ami-09f644e1caad2d877
+
 Resources:
 
   VPC:
@@ -74,16 +105,16 @@ Resources:
   NATGateway:
     Type: AWS::EC2::NatGateway
     Properties:
-      AllocationId: !GetAtt VpcElasticIPAddress.AllocationId
+      AllocationId: !GetAtt VPCElasticIPAddress.AllocationId
       SubnetId: !Ref PublicNet1
 
-  VpcElasticIPAddress:
+  VPCElasticIPAddress:
     Type: AWS::EC2::EIP
     Properties:
       Domain: VPC
       Tags:
       - Key: Name
-        Value: !Sub ${AWS::StackName}-VpcElasticIPAddress
+        Value: !Sub ${AWS::StackName}-VPCElasticIPAddress
 
   # Attach the public subnet to public route table:
   PublicSubnet1RouteTableAssociation:
@@ -122,8 +153,7 @@ Resources:
       IamInstanceProfile: !Ref EC2S3RoleInstanceProfile # Allow OA host to access to s3 bucket object "server.cfg".
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: !Ref InstanceTypeParameter
-#     ImageId: ami-068eb71da1589bf7d # The Oa AMI in us-west-1
-      ImageId: ami-0f410b552d8a5e1b9  # Vanilla Debian 10 us-west-1
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", DEB10]
       KeyName: !Ref KeyNameParameter
       Monitoring: no
       NetworkInterfaces:
@@ -143,12 +173,20 @@ Resources:
         aws s3 cp "s3://ll-ig-oa/oaconfig/server.cfg" "/etc/openarena-server/server.cfg"
         reboot
 
-  OaEIP:
-    Type: AWS::EC2::EIPAssociation
+# How to get and allocate an "new" EIP and associate it to an instance
+  EC2InstanceEIP:
+    Type: AWS::EC2::EIP
     Properties:
-  #    AllocationId: eipalloc-f7bc02c9 # must list the EIP OR AllocationId
-      EIP: 54.176.172.49
       InstanceId: !Ref EC2Instance
+    DependsOn: EC2Instance
+
+# Example of how to allocate an EIP already in your account
+#  EC2InstanceEIP:
+#    Type: AWS::EC2::EIPAssociation
+#    Properties:
+  #    AllocationId: eipalloc-f7bc02c9 # must list the EIP OR AllocationId, not both
+#      EIP: 54.176.172.49
+#      InstanceId: !Ref EC2Instance
 
  # Add role/policy/profile
   EC2S3Role:
@@ -185,3 +223,14 @@ Resources:
       Path: /
       Roles:
         - !Ref EC2S3Role
+
+  EC2InstanceRecordSetA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !ImportValue CloudynetworkZoneExport
+      Name: oa.cloudynet.work.
+      Type: A
+      TTL: '60'
+      ResourceRecords:
+      - !GetAtt EC2Instance.PublicIp
+    DependsOn: EC2InstanceEIP
