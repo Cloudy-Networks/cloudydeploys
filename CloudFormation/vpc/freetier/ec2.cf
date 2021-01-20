@@ -16,6 +16,15 @@ Parameters:
     Description: The EC2 Key Pair to allow SSH access to the instance
     Type: 'AWS::EC2::KeyPair::KeyName'
 
+  DeployNameParameter:
+    Description: Choose a deploy to run on your host.
+    Type: String
+    Default: baseline/deploy.sh
+    AllowedValues:
+      - baseline/deploy.sh
+      - openarena/deploy.sh
+      - openarenaeplus/deploy.sh
+
 # Mappings... proof of concept, specify the "OS code"
 # and get the image based on the region you are deploying in
 # use it as a parameter for EC2 like:
@@ -172,24 +181,10 @@ Resources:
       - Key: Name
         Value: !Sub ${AWS::StackName}-EC2Instance
       UserData:
-        !Base64 |
-        #!/bin/bash
-        hostnamectl set-hostname oa.cloudynet.work
-        sed '9 a 127.0.0.1   oa.cloudynet.work oa' /etc/hosts
-        apt -y update && apt -y upgrade
-        apt install -y debian-keyring debian-archive-keyring apt-transport-https
-        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/cfg/gpg/gpg.155B6D79CA56EA34.key' | sudo apt-key add -
-        curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/cfg/setup/config.deb.txt?distro=debian&version=any-version' | sudo tee -a /etc/apt/sources.list.d/caddy-stable.list
-        apt -y update && apt -y install openarena-server openarena-oacmp1 unzip caddy
-        aws s3 cp "s3://ll-ig-oa/oaconfig/server.cfg" "/etc/openarena-server/server.cfg"
-        wget https://www.excessiveplus.net/files/release/xp-oa-2.3.zip -P /usr/lib/openarena-server/ && unzip  /usr/lib/openarena-server/xp-oa-2.3.zip
-        unzip  /usr/lib/openarena-server/xp-oa-2.3.zip -d /usr/lib/openarena-server/
-        mkdir /usr/share/caddy/excessiveplus/
-        mkdir /usr/share/caddy/oacmp-mod/
-        cp /usr/lib/openarena-server/excessiveplus/* /usr/share/caddy/excessiveplus
-        cp /usr/lib/openarena-server/oacmp-mod/* /usr/share/caddy/oacmp-mod/
-        sed -i 's/:80/oa.cloudynet.work/g' /etc/caddy/Caddyfile
-        reboot
+        "Fn::Base64":
+            "Fn::Sub": |
+              #!/bin/bash
+              aws s3 cp s3://ll-ig-oa/${DeployNameParameter} - | bash -s
 
 # How to get and allocate a "new" EIP and associate it to an instance
   EC2InstanceEIP:
@@ -233,7 +228,13 @@ Resources:
                   - 's3:PutObject'
                   - 's3:GetObject'
                   - 's3:DeleteObject'
-                Resource: 'arn:aws:s3:::ll-ig-oa/oaconfig/server.cfg'
+                Resource: 'arn:aws:s3:::ll-ig-oa/openarenaeplus/server.cfg'
+              - Effect: Allow
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                  - 's3:DeleteObject'
+                Resource: 'arn:aws:s3:::ll-ig-oa/openarenaeplus/deploy.sh'
 
   EC2S3RoleInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
@@ -245,8 +246,8 @@ Resources:
   EC2InstanceRecordSetA:
     Type: AWS::Route53::RecordSet
     Properties:
-      HostedZoneId: !ImportValue CloudynetworkZoneExport
-      Name: oa.cloudynet.work.
+      HostedZoneId: !ImportValue IgCloudynetworkZoneExport
+      Name: oa.ig.cloudynet.work.
       Type: A
       TTL: '60'
       ResourceRecords:
