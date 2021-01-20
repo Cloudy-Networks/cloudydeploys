@@ -1,5 +1,5 @@
 ## This is a snippet for setting up a public s3 bucket to host a "serverless"
-#  static HTML site like mkdocs, and the like. WARNING, this makes a
+#  static HTML site like mkdocs. etc, and the like. WARNING, this makes a
 #  "public" s3 bucket that is world read-able
 
 AWSTemplateFormatVersion: 2010-09-09
@@ -9,10 +9,10 @@ Parameters:
   SiteName:
     Description: An example static HTML site using Mkdocs
     Type: String
-    Default: ig-mkdocs
+    Default: ChangeMe
 
 Resources:
-  igMkdocsBucket:
+  s3Bucket:
     Type: AWS::S3::Bucket
     Properties:
         BucketName: !Ref SiteName
@@ -24,7 +24,7 @@ Resources:
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref igMkdocsBucket
+      Bucket: !Ref s3Bucket
       PolicyDocument:
         Id: MyPolicy
         Version: 2012-10-17
@@ -33,12 +33,12 @@ Resources:
             Effect: Allow
             Principal: '*'
             Action: 's3:GetObject'
-            Resource: !Join ['', ['arn:aws:s3:::', !Ref igMkdocsBucket, /*]]
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref s3Bucket, /*]]
 
 
 Outputs:
   WebsiteURL:
     Value: !GetAtt
-        - igMkdocsBucket
+        - s3Bucket
         - WebsiteURL
     Description: URL for website hosted on S3
