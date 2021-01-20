@@ -246,8 +246,8 @@ Resources:
   EC2InstanceRecordSetA:
     Type: AWS::Route53::RecordSet
     Properties:
-      HostedZoneId: !ImportValue CloudynetworkZoneExport
-      Name: oa.cloudynet.work.
+      HostedZoneId: !ImportValue IgCloudynetworkZoneExport
+      Name: oa.ig.cloudynet.work.
       Type: A
       TTL: '60'
       ResourceRecords:
