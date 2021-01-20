@@ -228,13 +228,13 @@ Resources:
                   - 's3:PutObject'
                   - 's3:GetObject'
                   - 's3:DeleteObject'
-                Resource: 'arn:aws:s3:::ll-ig-oa/openarena/server.cfg'
+                Resource: 'arn:aws:s3:::ll-ig-oa/openarenaeplus/server.cfg'
               - Effect: Allow
                 Action:
                   - 's3:PutObject'
                   - 's3:GetObject'
                   - 's3:DeleteObject'
-                Resource: 'arn:aws:s3:::ll-ig-oa/openarena/deploy.sh'
+                Resource: 'arn:aws:s3:::ll-ig-oa/openarenaeplus/deploy.sh'
 
   EC2S3RoleInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
