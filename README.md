@@ -1,2 +1,2 @@
-# deploy.awsplayground
-a place for AWS learing and testing.
+# freetierdeploys.aws
+Deploy infrastructure for games and more in the free tier of AWS.
