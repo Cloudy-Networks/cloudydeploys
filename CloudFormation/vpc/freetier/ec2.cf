@@ -1,6 +1,10 @@
-# The OA
 
 Parameters:
+
+  FtS3BucketNameParameter:
+    Description: s3 bucket to get deploys from.
+    Type: String
+    Default: change-to-your-ft-bucket-name
 
   InstanceTypeParameter:
     Description: t2.micro(1c,1g) t2.small(1c,2g) t3.micro(2c,1g) t3.small(2c,2g). Default is t3.small.
@@ -184,7 +188,7 @@ Resources:
         "Fn::Base64":
             "Fn::Sub": |
               #!/bin/bash
-              aws s3 cp s3://ll-ig-oa/${DeployNameParameter} - | bash -s
+              aws s3 cp s3://${FtS3BucketNameParameter}/${DeployNameParameter} - | bash -s
 
 # How to get and allocate a "new" EIP and associate it to an instance
   EC2InstanceEIP:
@@ -222,19 +226,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: 's3:ListBucket'
-                Resource: 'arn:aws:s3:::ll-ig-oa'
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref "FtS3BucketNameParameter"]]
               - Effect: Allow
                 Action:
                   - 's3:PutObject'
                   - 's3:GetObject'
                   - 's3:DeleteObject'
-                Resource: 'arn:aws:s3:::ll-ig-oa/openarenaeplus/server.cfg'
-              - Effect: Allow
-                Action:
-                  - 's3:PutObject'
-                  - 's3:GetObject'
-                  - 's3:DeleteObject'
-                Resource: 'arn:aws:s3:::ll-ig-oa/openarenaeplus/deploy.sh'
+                Resource: !Join ['', ['arn:aws:s3:::', !Ref "FtS3BucketNameParameter",'/*']]
 
   EC2S3RoleInstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
