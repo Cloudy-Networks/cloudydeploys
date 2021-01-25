@@ -20,7 +20,7 @@ Outputs:
     Export:
       Name: !Sub ${AWS::StackName}-s3BucketNameOutput
   s3BucketArnOutput:
-    Value: !GetAtt Arn
+    Value: !GetAtt s3Bucket.Arn
     Description: s3 bucket Arn
     Export:
       Name: !Sub ${AWS::StackName}-s3BucketArnOutput
