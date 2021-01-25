@@ -7,13 +7,16 @@ Parameters:
     Default: change-to-your-ft-bucket-name
 
   InstanceTypeParameter:
-    Description: t2.micro(1c,1g) t2.small(1c,2g) t3.micro(2c,1g) t3.small(2c,2g). Default is t3.small.
+    Description: Instance types are t3.micro(2c,1g) t2.micro(1c,1g) t3.small(2c,2g) t2.small(1c,2g).
+                 The default is t3.micro. The t2 and t3.micro types are eligable for the free tier.
+                 The t2 and t3.small are not, but are the next cheapest choice if higher CPU and RAM are needed.
+                 See https://aws.amazon.com/ec2/pricing/on-demand/ for latest pricing.
     Type: String
-    Default: t3.small
+    Default: t3.micro
     AllowedValues:
       - t3.micro
-      - t3.small
       - t2.micro
+      - t3.small
       - t2.small
 
   KeyNameParameter:
