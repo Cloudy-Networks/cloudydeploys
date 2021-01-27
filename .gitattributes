@@ -1,2 +1,8 @@
 # Cause Github to consider extension ".cf" to be YAML
+*.yml linguist-language=YAML
+*.yaml linguist-language=YAML
 *.cf linguist-language=YAML
+
+*.cf linguist-detectable=true
+*.yml linguist-detectable=true
+*.yaml linguist-detectable=true
