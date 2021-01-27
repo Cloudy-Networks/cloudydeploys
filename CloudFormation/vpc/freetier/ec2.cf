@@ -32,6 +32,11 @@ Parameters:
       - openarena/deploy.sh
       - openarenaeplus/deploy.sh
 
+  HostNameParamter:
+    Description: Enter the host name of your instance.
+    Type: String
+    Default: myhost
+
 # Mappings... proof of concept, specify the "OS code"
 # and get the image based on the region you are deploying in
 # use it as a parameter for EC2 like:
@@ -247,8 +252,8 @@ Resources:
   EC2InstanceRecordSetA:
     Type: AWS::Route53::RecordSet
     Properties:
-      HostedZoneId: !ImportValue IgCloudynetworkZoneExport
-      Name: oa.ig.cloudynet.work.
+      HostedZoneId: !ImportValue HostedZone1IdExport
+      Name: !Join ['', [!Ref "HostNameParamter", ".", !ImportValue HostedZone1ParameterExport, '.']]
       Type: A
       TTL: '60'
       ResourceRecords:
