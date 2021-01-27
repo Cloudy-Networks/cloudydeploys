@@ -1,11 +1,12 @@
-# Cause Github to consider extension ".cf" to be YAML
-*.yml linguist-language=YAML
-*.yml linguist-detectable=true
-
-*.yaml linguist-language=YAML
-*.yaml linguist-detectable=true
-
+# Cause Github to consider extension ".cf" to be YAML and count in repo stats
 *.cf linguist-language=YAML
 *.cf linguist-detectable=true
 
+# Cause Github to consider YAML in repo stats
+*.yaml linguist-language=YAML
+*.yaml linguist-detectable=true
+*.yml linguist-language=YAML
+*.yml linguist-detectable=true
+
+# Cause Github to consider Markdown in repo stats
 *.md linguist-detectable=true
