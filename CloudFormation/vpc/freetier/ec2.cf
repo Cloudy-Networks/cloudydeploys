@@ -6,6 +6,16 @@ Parameters:
     Type: String
     Default: change-to-your-ft-bucket-name
 
+  InstanceOperatingSystemParameter:
+    Description: Choose an operating system. The AMI must be registered in
+                  in your account and region.
+    Type: String
+    Default: AmazonLinux2
+    AllowedValues:
+      - Debian10
+      - Ubuntu20
+      - AmazonLinux2
+
   InstanceTypeParameter:
     Description: Instance types are t3.micro(2c,1g) t2.micro(1c,1g) t3.small(2c,2g) t2.small(1c,2g).
                  The default is t3.micro. The t2 and t3.micro types are eligable for the free tier.
@@ -41,32 +51,32 @@ Parameters:
 # and get the image based on the region you are deploying in
 # use it as a parameter for EC2 like:
 #
-# ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", DEB10]
+# ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", Debian10]
 #
-# DEB10 == Debian 10 Buster
-# UBT20 == Ubuntu 20.04 LTS Focal
-# ALIN2 == Amazon Linux 2
+# Debian10 == Debian 10 Buster
+# Ubuntu20 == Ubuntu 20.04 LTS Focal
+# AmazonLinux2 == Amazon Linux 2
 #
 # delete these comments later...
 
 Mappings:
   RegionMap:
     us-west-1:
-      DEB10: ami-0f410b552d8a5e1b9
-      UBT20: ami-0085e120cd494ce88
-      ALIN2: ami-00db7974d178c2536
+      Debian10: ami-0f410b552d8a5e1b9
+      Ubuntu20: ami-0085e120cd494ce88
+      AmazonLinux2: ami-00db7974d178c2536
     us-west-2:
-      DEB10: ami-01632a514f93db17f
-      UBT20: ami-024f7e9a6b4357656
-      ALIN2: ami-0d927e3ac55a7b26f
+      Debian10: ami-01632a514f93db17f
+      Ubuntu20: ami-024f7e9a6b4357656
+      AmazonLinux2: ami-0d927e3ac55a7b26f
     us-east-1:
-      DEB10: ami-00bc4a48c20aeae77
-      UBT20: ami-089439860addda2e3
-      ALIN2: ami-0dc161e2e5f144ffc
+      Debian10: ami-00bc4a48c20aeae77
+      Ubuntu20: ami-089439860addda2e3
+      AmazonLinux2: ami-0dc161e2e5f144ffc
     us-east-2:
-      DEB10: ami-05f5cd6454a382a70
-      UBT20: ami-0ef6adb08833904f8
-      ALIN2: ami-09f644e1caad2d877
+      Debian10: ami-05f5cd6454a382a70
+      Ubuntu20: ami-0ef6adb08833904f8
+      AmazonLinux2: ami-09f644e1caad2d877
 
 Resources:
 
@@ -182,7 +192,7 @@ Resources:
       IamInstanceProfile: !Ref EC2S3RoleInstanceProfile # Allow OA host to access to s3 bucket object "server.cfg".
       InstanceInitiatedShutdownBehavior: stop
       InstanceType: !Ref InstanceTypeParameter
-      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", DEB10]
+      ImageId: !FindInMap [ RegionMap, !Ref "AWS::Region", !Ref InstanceOperatingSystemParameter ]
       KeyName: !Ref KeyNameParameter
       Monitoring: no
       NetworkInterfaces:
