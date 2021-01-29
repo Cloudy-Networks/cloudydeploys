@@ -10,6 +10,7 @@ Resources:
       HostedZoneConfig:
         Comment: !Ref HostedZone1Parameter
       Name: !Ref HostedZone1Parameter
+      #DelegationSetId: N0110872U82F46DQ0L9U Grrr, not supported yet?!?
 
 # Example of a statically defined host record
 #  HostedZone1:
