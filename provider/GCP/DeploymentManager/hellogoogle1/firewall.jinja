@@ -1,0 +1,10 @@
+
+resources:
+- name: firewall-{{ env["deployment"] }}
+  type: gcp-types/compute-v1:firewalls
+  properties:
+    network: /global/networks/default
+    allowed:
+    - IPProtocol: udp
+      ports: ['27960']
+    targetTag: ['oa']

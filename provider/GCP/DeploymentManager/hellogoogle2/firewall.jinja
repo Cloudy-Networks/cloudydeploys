@@ -1,0 +1,10 @@
+resources:
+- type: gcp-types/compute-v1:firewalls
+  name: firewall-{{ env["deployment"] }}
+  description: Firewall for {{ env["deployment"] }}
+  properties:
+    network: /global/networks/default
+    allowed:
+    - IPProtocol: tcp
+      ports: ['22', '27960']
+    sourceRanges: [0.0.0.0/0]

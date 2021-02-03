@@ -1,0 +1,21 @@
+# goodbygoogle.jinja defines a vm template using some variables making a f1-micro instance
+
+imports:
+- path: goodbyegoogle.jinja
+- path: firewall.jinja
+
+resources:
+
+- name: my-firewalls
+  type: firewall.jinja
+
+- name: vm-vars
+  type: goodbyegoogle.jinja
+  properties:
+    zone: us-west1-b
+
+# Hints
+# https://cloud.google.com/sdk/docs/install#deb
+# after installing and configuring the CLI/SDK try this...
+# #> gcloud deployment-manager deployments create hello-google --config hellogoogle.yaml
+# #> gcloud compute ssh your.user.name@vm-hello-google --zone=us-west1-b
