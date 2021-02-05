@@ -1,4 +1,4 @@
-# freetierdeploys
+# cloudydeploys
 
 ## Description
 Deploy infrastructure for games and apps in the cloud, cheaply and easily.
