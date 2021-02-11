@@ -154,8 +154,7 @@ Resources:
       SubnetId: !Ref PublicNet1
       RouteTableId: !Ref PublicRouteTable
 
-  # Let clients connect from anywhere on the standard OA udp port.
-  # Let admins connect from anywhere via ssh
+  # Let admins connect from anywhere via ssh, allow all outgoing traffic
   SecurityGroup:
       Type: AWS::EC2::SecurityGroup
       Properties:
@@ -164,21 +163,9 @@ Resources:
             - IpProtocol: -1
               CidrIp: 0.0.0.0/0
         SecurityGroupIngress:
-            - IpProtocol: udp
-              FromPort: 27960
-              ToPort: 27960
-              CidrIp: 0.0.0.0/0
             - IpProtocol: tcp
               FromPort: 22
               ToPort: 22
-              CidrIp: 0.0.0.0/0
-            - IpProtocol: tcp
-              FromPort: 80
-              ToPort: 80
-              CidrIp: 0.0.0.0/0
-            - IpProtocol: tcp
-              FromPort: 443
-              ToPort: 443
               CidrIp: 0.0.0.0/0
         Tags:
         - Key: Name

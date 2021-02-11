@@ -1,0 +1,36 @@
+Resources:
+  SecurityGroupOpenArena:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Allow clients into the-oa and web server
+        SecurityGroupIngress:
+            - IpProtocol: udp
+              FromPort: 27960
+              ToPort: 27960
+              CidrIp: 0.0.0.0/0
+            - IpProtocol: tcp
+              FromPort: 80
+              ToPort: 80
+              CidrIp: 0.0.0.0/0
+            - IpProtocol: tcp
+              FromPort: 443
+              ToPort: 443
+              CidrIp: 0.0.0.0/0
+        Tags:
+        - Key: Name
+          Value: !Sub ${AWS::StackName}-SecurityGroupOpenArena
+        VpcId: !Ref VPC
+
+  EC2Stack:
+    Type: AWS::CloudFromation::StackName
+    Properties:
+      TemplateURL: ../../providers/AWS/ec2.cf
+      Parameters:
+
+    r53Stack:
+      Type: AWS::CloudFromation::StackName
+      Properties:
+        TemplateURL: ../../providers/AWS/r53.cf
+        Parameters:
+
+      
