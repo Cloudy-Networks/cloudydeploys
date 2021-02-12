@@ -23,3 +23,5 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: ../../providers/AWS/IAM.cf
+      Parameters:
+        S3BucketNameParameter: "cloudynetworkdeploy.russ"
