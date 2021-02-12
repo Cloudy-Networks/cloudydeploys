@@ -3,6 +3,11 @@ Parameters:
     Type: String
     Description: Enter your domain or subdomain.
 
+  HostNameParamter:
+    Description: Enter the host name of your instance.
+    Type: String
+    Default: myhost
+
 Resources:
   HostedZone1:
     Type: "AWS::Route53::HostedZone"
@@ -12,20 +17,17 @@ Resources:
       Name: !Ref HostedZone1Parameter
       #DelegationSetId: N0110872U82F46DQ0L9U Grrr, not supported yet?!?
 
-# Example of a statically defined host record
-#  HostedZone1:
-#    Type: AWS::Route53::RecordSet
-#    Properties:
-#      HostedZoneName: domain.tld.
-#      Name: host.domain.tld.
-#      Type: A
-#      TTL: '60'
-#      ResourceRecords:
-#      - 54.176.172.49
-#    DependsOn: HostedZone1
+  EC2InstanceRecordSetA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZone1IdExport
+      Name: !Join ['', [!Ref "HostNameParamter", ".", !Ref HostedZone1Parameter, '.']]
+      Type: A
+      TTL: '60'
+      ResourceRecords:
+      - !GetAtt EC2InstancePublicIpOutput
+    DependsOn: EC2InstanceEIP
 
-# Using Outputs we can get the name of the zone to import in another stack
-# This is how I was able to make a host record from another stack
 Outputs:
   HostedZone1IdExport:
     Description: The hosted zone id

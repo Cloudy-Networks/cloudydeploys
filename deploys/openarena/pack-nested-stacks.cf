@@ -1,0 +1,16 @@
+Resources:
+  R53Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-west-1.amazonaws.com/freetierdeploys.aws.bootstrap.russ/047461202b35a68dff3f1572c1d8a0f9.template
+      Parameters:
+        HostedZone1Parameter: mostly.cloudynet.work
+        HostNameParamter: oa
+  EC2Stack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-west-1.amazonaws.com/freetierdeploys.aws.bootstrap.russ/a27fcf0fb3623a6620550ae5f8480e9a.template
+  IAMStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.us-west-1.amazonaws.com/freetierdeploys.aws.bootstrap.russ/1d25671c2c8bdf31c543da17db088841.template
