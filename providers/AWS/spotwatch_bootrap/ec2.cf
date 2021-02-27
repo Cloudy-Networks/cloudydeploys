@@ -10,7 +10,7 @@ Parameters:
     Description: Choose an operating system. The AMI must be registered in
                   in your account and region.
     Type: String
-    Default: AmazonLinux2
+    Default: Debian10
     AllowedValues:
       - Debian10
       - Ubuntu20
@@ -36,8 +36,9 @@ Parameters:
   DeployNameParameter:
     Description: Choose a deploy to run on your host.
     Type: String
-    Default: baseline/deploy.sh
+    Default: cloudy_website/deploy.sh
     AllowedValues:
+      - cloudy_website/deploy.sh
       - baseline/deploy.sh
       - openarena/deploy.sh
       - openarenaeplus/deploy.sh
@@ -45,7 +46,7 @@ Parameters:
   HostNameParamter:
     Description: Enter the host name of your instance.
     Type: String
-    Default: myhost
+    Default: www
 
 # Mappings... proof of concept, specify the "OS code"
 # and get the image based on the region you are deploying in
@@ -88,7 +89,7 @@ Resources:
       EnableDnsHostnames: true
       Tags:
       - Key: Name
-        Value:  !Join ['', [!Ref "AWS::StackName", "-IgDevVpc" ]]
+        Value:  !Join ['', [!Ref "AWS::StackName", "-cloudynet" ]]
 
   #  VPC gets internet access:
   InternetGateway:
@@ -164,10 +165,6 @@ Resources:
             - IpProtocol: -1
               CidrIp: 0.0.0.0/0
         SecurityGroupIngress:
-            - IpProtocol: udp
-              FromPort: 27960
-              ToPort: 27960
-              CidrIp: 0.0.0.0/0
             - IpProtocol: tcp
               FromPort: 22
               ToPort: 22
@@ -258,14 +255,3 @@ Resources:
       Path: /
       Roles:
         - !Ref EC2S3Role
-
-  EC2InstanceRecordSetA:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneId: !ImportValue HostedZone1IdExport
-      Name: !Join ['', [!Ref "HostNameParamter", ".", !ImportValue HostedZone1ParameterExport, '.']]
-      Type: A
-      TTL: '60'
-      ResourceRecords:
-      - !GetAtt EC2Instance.PublicIp
-    DependsOn: EC2InstanceEIP
