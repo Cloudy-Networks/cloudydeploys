@@ -7,6 +7,6 @@
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/cfg/setup/config.deb.txt?distro=debian&version=any-version' | sudo tee -a /etc/apt/sources.list.d/caddy-stable.list
   apt -y update && apt -y install caddy
   rm /usr/share/caddy/index.html
-  aws s3 cp "s3://cn-spotrunner-russ/www/" "/usr/share/caddy/"
+  aws s3 cp "s3://spotrunner.ig.dev/www/" "/usr/share/caddy/" --recursive
   #sed -i 's/:80/www.cloudynet.work/g' /etc/caddy/Caddyfile
   #reboot

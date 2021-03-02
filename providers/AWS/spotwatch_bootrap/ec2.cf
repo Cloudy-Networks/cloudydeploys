@@ -4,7 +4,7 @@ Parameters:
   FtS3BucketNameParameter:
     Description: s3 bucket to get deploys from.
     Type: String
-    Default: change-to-your-ft-bucket-name
+    Default: spotrunner.ig.dev
 
   InstanceOperatingSystemParameter:
     Description: Choose an operating system. The AMI must be registered in
@@ -36,12 +36,10 @@ Parameters:
   DeployNameParameter:
     Description: Choose a deploy to run on your host.
     Type: String
-    Default: cloudy_website/deploy.sh
+    Default: deploy.sh
     AllowedValues:
-      - cloudy_website/deploy.sh
-      - baseline/deploy.sh
-      - openarena/deploy.sh
-      - openarenaeplus/deploy.sh
+      - deploy.sh
+
 
   HostNameParamter:
     Description: Enter the host name of your instance.
