@@ -253,3 +253,14 @@ Resources:
       Path: /
       Roles:
         - !Ref EC2S3Role
+
+  EC2InstanceRecordSetA:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !ImportValue HostedZone1IdExport
+      Name: !Join ['', [!Ref "HostNameParamter", ".", !ImportValue HostedZone1ParameterExport, '.']]
+      Type: A
+      TTL: '60'
+      ResourceRecords:
+      - !GetAtt EC2Instance.PublicIp
+    DependsOn: EC2InstanceEIP

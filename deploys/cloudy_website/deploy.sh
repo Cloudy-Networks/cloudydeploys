@@ -10,3 +10,7 @@
   aws s3 cp "s3://spotrunner.ig.dev/www/" "/usr/share/caddy/" --recursive
   #sed -i 's/:80/www.cloudynet.work/g' /etc/caddy/Caddyfile
   #reboot
+
+
+### Note, removed bits for mangle the hostname and dns, which means
+### Caddy wont do automatic SSL for now. 
