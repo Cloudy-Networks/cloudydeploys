@@ -1,0 +1,20 @@
+#!/bin/bash
+
+LOG_FILE="spotrunner.log"
+
+#TOKEN=`curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
+
+while sleep 5; do
+
+    HTTP_CODE=$(curl -s -w %{http_code} -o /dev/null https://watwat.free.beeceptor.com/instance-action)
+
+    if [[ "$HTTP_CODE" -eq 401 ]] ; then
+        echo 'Refreshing Authentication Token' >> $LOG_FILE
+        #TOKEN=`curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 30"`
+    elif [[ "$HTTP_CODE" -eq 200 ]] ; then
+        echo 'Interrupted' >> $LOG_FILE
+        break
+    else
+        echo 'Not Interrupted' >> $LOG_FILE
+    fi
+done
