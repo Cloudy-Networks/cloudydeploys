@@ -8,9 +8,10 @@
   apt -y update && apt -y install caddy
   rm /usr/share/caddy/index.html
   aws s3 cp "s3://spotrunner.ig.dev/www/" "/usr/share/caddy/" --recursive
+  chown -R admin:admin /usr/share/caddy/api/
   #sed -i 's/:80/www.cloudynet.work/g' /etc/caddy/Caddyfile
   #reboot
 
 
 ### Note, removed bits for mangle the hostname and dns, which means
-### Caddy wont do automatic SSL for now. 
+### Caddy wont do automatic SSL for now.
